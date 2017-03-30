@@ -1,0 +1,211 @@
+pragma solidity ^0.4.0;
+
+
+
+contract Ballot {
+
+Proposal[] proposals;
+
+    mapping(address => Membre) Membres;
+
+    uint Nombre_de_block;
+
+    uint deadline;
+	  address admin; 
+	  bool ballot =false; // le vote est fermé 
+	  
+	
+    struct Membre{
+
+        address nom;
+
+        uint NombredeVoix;
+
+        bool proposed;
+        
+        bool voted;
+
+        
+
+    }
+
+
+
+    struct Proposal{
+
+        string nom;
+
+        address creator;
+
+      
+        uint NombredeVoix;
+
+    }
+
+
+
+    
+	  
+	  
+	  
+
+      modifier isAdmin()
+    {
+        if(msg.sender != admin) throw; _;
+    }
+
+	
+	   modifier hasAlreadyvoted()
+    {
+        if(Membres[msg.sender].voted) throw; _;
+    }
+	
+	
+	   modifier isDeadLine()
+    {
+        if(Nombre_de_block>deadline) throw; _;
+    }
+	
+
+	
+	   modifier isOpen()
+    {
+        if(ballot) throw; _;
+    }
+	
+
+    modifier isAProposalNumber(uint _nProposal)
+    {
+        if (_nProposal >= proposals.length )
+        {
+            throw;
+            _;
+        }
+    }
+	
+	
+	
+
+
+    function CreationMembre(){
+
+        Membre membre;
+
+        membre.voted=false;
+
+        membre.proposed=false;
+
+        membre.nom=msg.sender;
+
+       
+
+    }
+
+
+
+    
+
+
+    function Proposalcreater(string _nom)  isDeadLine(){
+
+        if (!Membres[msg.sender].proposed){
+
+            Proposal prop;
+
+            prop.nom=_nom;
+
+            prop.creator=msg.sender;
+
+            
+
+            prop.NombredeVoix=1;
+			
+			proposals.push(prop);
+			
+
+           
+
+        }
+
+    }
+
+function Ballot() {
+
+ Nombre_de_block =block.number;
+  deadline = Nombre_de_block + 278035; //2 semaines la dealdine
+  ballot=true;
+
+}
+
+    function endBallot() isAdmin(){
+
+     ballot=false;
+
+    }
+	 function changeDeadline (uint Semainedeplus)isAdmin(){
+
+     deadline =deadline + Semainedeplus*139017;
+
+    }
+
+	 function GetNumCandidate() constant returns(uint) {
+        return proposals.length;
+    }
+    
+    function GetCandidate(uint i)
+        constant returns(string _candidate, uint _votes)
+    {
+        _candidate = proposals[i].nom;
+        _votes = proposals[i].NombredeVoix;
+    }
+
+
+
+    function Vote(uint prop) hasAlreadyvoted() isDeadLine(){
+
+       
+
+        proposals[prop].NombredeVoix++;
+		 Membres[msg.sender].voted=true;
+		
+
+    }
+
+
+
+    function Vainqueur() isDeadLine() returns(string){
+
+        
+
+            uint max=0;
+
+            for (uint i=0;i<proposals.length;i++){
+
+                if (proposals[i].NombredeVoix>proposals[max].NombredeVoix){
+
+                    max=i;
+					
+
+                }
+
+            }
+
+            return proposals[i].nom;
+
+        
+
+        
+
+    }
+
+
+
+   
+
+    
+
+    function kill()  {
+        suicide(msg.sender);
+    }
+
+}
